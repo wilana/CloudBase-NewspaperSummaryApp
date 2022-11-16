@@ -6,15 +6,11 @@ from heapq import nlargest
 from newspaper import Article
 
 
-st.set_page_config(page_title="Wilana's Cloud Project")
-
-# intro
-st.title("News Article Summarizer")
-st.subheader("By: Wilana Matthews - 1120464")
-
+# ----------- Functions --------------
 
 # Summarize text using SpaCy's pre-trained NLP
 # text is the text to summarize, per is the percent amount to summarize
+# code from https://www.activestate.com/blog/how-to-do-text-summarization-with-python/
 def summarize(text, per):
     # load the NLP pipeline (English)
     nlp = spacy.load('en_core_web_sm')
@@ -54,23 +50,44 @@ def summarize(text, per):
     return summary
 
 
-# user input
-default_article = "https://www.cbc.ca/news/business/bank-of-canada-winter-2022-1.6649322"
-user_article = st.text_input("Enter article url: ", default_article)
+# ----------- Main --------------
 
-per_summary = st.slider("Length of summary (as a percent of original text): ", min_value=5, max_value=95, value=20)
+# Set page title in web browser
+st.set_page_config(page_title="Wilana's Cloud Project")
 
-if st.button("Go!"):
-    # get article
-    article = Article(user_article)
-    article.download()
-    article.parse()
+# intro titles
+st.title("News Article Summarizer")
+st.subheader("By: Wilana Matthews (1120464)")
 
-    per_summary = per_summary / 100
-    newText = summarize(article.text, per_summary)
+# formatting to have user input smaller and centered
+col1, col2, col3 = st.columns([1, 10, 1])
 
-    st.header(article.title)
-    st.caption(f'Author(s): {article.authors}')
-    if article.has_top_image():
-        st.image(article.top_img)
-    st.write(newText)
+with col2:
+    # user input
+    default_article = "https://news.mit.edu/2022/solving-brain-dynamics-gives-rise-flexible-machine-learning-models-1115"
+    user_article = st.text_input("Enter article url: ", default_article)
+
+    per_summary = st.slider("Length of summary (as a percent of original text): ", min_value=5, max_value=95, value=20)
+
+# if the site or percent is updated, run the summarizer and display
+if user_article or per_summary:
+    try:
+        # get article
+        article = Article(user_article)
+        article.download()
+        article.parse()
+
+        # get the percent to summarize to
+        per_summary = per_summary / 100
+        newText = summarize(article.text, per_summary)
+
+
+        # display summary
+        st.header(article.title)
+        st.caption(f'Author(s): {article.authors}')
+        if article.has_top_image():
+            st.image(article.top_img)
+        st.write(newText)
+    except:
+        st.header("OOPS!")
+        st.write("I don't like that...\nPlease enter a different article url and/or change the requested length")
